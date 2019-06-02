@@ -109,3 +109,4 @@ __pycache__/
 output/*
 *.pyc
 yolo-coco/yolov3.weights
+.vscode
