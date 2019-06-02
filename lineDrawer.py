@@ -6,7 +6,7 @@ class LineDrawer():
         self.lines = []
         self.p1 = None
         self.p2 = None
-        self.frame = cv2.resize(frame, None, fx = 0.5,fy = 0.5)
+        self.frame = frame
 
     def on_mouse(self, event, x, y, flags, params):
         if event == cv2.EVENT_LBUTTONDOWN:
@@ -47,9 +47,3 @@ class LineDrawer():
         cv2.destroyAllWindows()
 
         return self.lines
-
-img = cv2.imread('test.jpeg',3)
-obje = LineDrawer(img)
-
-my_lines = obje.drawer()
-print(my_lines)
