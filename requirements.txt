@@ -1,0 +1,7 @@
+filterpy
+numpy
+pandas
+sklearn
+numba
+imutils
+opencv-contrib-python
