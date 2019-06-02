@@ -1,18 +1,11 @@
 # import the necessary packages
 import os
 import time
-import signal
 import numpy as np
 import imutils
 import cv2
 import glob
 from lineDrawer import LineDrawer
-
-def ctrl_c_SIGINT(sig, frame):
-    print("Cleaning up...")
-    writer.release()
-    vs.release()
-    exit()
 
 # Clean output path
 files = glob.glob('output/*')
@@ -27,7 +20,7 @@ car_counters = []
 car_IDs_with_line_ids = {}
 
 # Get inputs from user
-input_path = input("Please enter the video path.\n")
+input_path = input("Please enter the input video.\n")
 output_path = input("Please enter the output path.\n")
 yolo_path = "./yolo-coco"
 confidence_val = 0.5
@@ -233,8 +226,12 @@ while True:
         text = "Line "+ str(i)+": " + str(c)
         cv2.putText(frame, text, (x - 10, y - 10), cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 255, 255), 1)
 
-    # saves image file
-    cv2.imwrite("output/frame-{}.png".format(frameIndex), frame)
+	# Save images to ouput folder
+    #cv2.imwrite("output/frame-{}.png".format(frameIndex), frame)
+    # Show images
+    cv2.imshow("Main Screen Press q to exit!", frame)
+    if cv2.waitKey(25) & 0xFF == ord('q'):
+    	break
 
     # check if the video writer is None
     if writer is None:
@@ -255,11 +252,9 @@ while True:
 
     # increase frame index
     frameIndex += 1
-
-    # Catch Ctrl+C signal
-    signal.signal(signal.SIGINT, ctrl_c_SIGINT)
     
 # release the file pointers
 print("Cleaning up...")
 writer.release()
 vs.release()
+cv2.destroyAllWindows()
