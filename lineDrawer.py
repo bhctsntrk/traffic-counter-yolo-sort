@@ -1,4 +1,5 @@
 import cv2
+import copy
 
 class LineDrawer():
     def __init__(self, frame):
@@ -24,7 +25,11 @@ class LineDrawer():
 
     def drawer(self):
         print("Please draw lines in frame")
-        print("Press r key when finish.")
+        print("Press r key to reset.")
+        print("Press o key when you finish it.")
+
+        # We need deep copy to copy original frame
+        frame_pure_copy = copy.deepcopy(self.frame)
 
         cv2.namedWindow('Draw Lines')
         cv2.setMouseCallback('Draw Lines', self.on_mouse)
@@ -41,8 +46,11 @@ class LineDrawer():
             cv2.imshow('Draw Lines', self.frame)
             
             key = cv2.waitKey(1)
-            if key == ord('r'):
+            if key == ord('o'):
                 break
+            elif key == ord('r'):
+                self.lines = []
+                self.frame = frame_pure_copy
 
         cv2.destroyAllWindows()
 
