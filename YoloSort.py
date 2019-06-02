@@ -4,7 +4,7 @@ from yolo import YoloSortCounter
 import sys
 
 class TkWindow(tk.Frame):
-
+    # We need tk.Var series because they updated in real time
     def __init__(self, master, initialdir='', filetypes=()):
         super().__init__(master)
         

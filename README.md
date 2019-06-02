@@ -1,16 +1,24 @@
 ## Downloading and Installing
 
-### Windows
+#### Windows
+
+Downlaod and run it from here:
+
 https://github.com/bhctsntrk/traffic-counter-yolo-sort/releases
 
 
-### Linux
-
+#### Linux
 
 ``` bash
 git clone https://github.com/bhctsntrk/traffic-counter-yolo-sort
 cd traffic-counter-yolo-sort
 chmod + x install.sh
 ./install.sh
-python3 main.py
+```
+## Running
+
+#### Linux
+
+``` bash
+python3 YoloSort.py
 ```
