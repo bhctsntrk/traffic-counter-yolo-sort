@@ -1,7 +1,8 @@
-## Downlaoding and Installing
+## Downloading and Installing
 
 ### Windows
 https://github.com/bhctsntrk/traffic-counter-yolo-sort/releases
+
 
 ### Linux
 

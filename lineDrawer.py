@@ -31,8 +31,8 @@ class LineDrawer():
         # We need deep copy to copy original frame
         frame_pure_copy = copy.deepcopy(self.frame)
 
-        cv2.namedWindow('Draw Lines')
-        cv2.setMouseCallback('Draw Lines', self.on_mouse)
+        cv2.namedWindow('Draw lines (press r to reset) (press o to complete)')
+        cv2.setMouseCallback('Draw lines (press r to reset) (press o to complete)', self.on_mouse)
 
         while True:
             
@@ -43,7 +43,7 @@ class LineDrawer():
                     else:
                         cv2.line(self.frame, l[0], l[1], (0,0,255), 5)
 
-            cv2.imshow('Draw Lines', self.frame)
+            cv2.imshow('Draw lines (press r to reset) (press o to complete)', self.frame)
             
             key = cv2.waitKey(1)
             if key == ord('o'):
