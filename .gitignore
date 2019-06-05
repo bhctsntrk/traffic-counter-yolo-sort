@@ -108,5 +108,5 @@ venv.bak/
 __pycache__/
 output/*
 *.pyc
-yolo-coco/yolov3.weights
+yolo-coco/yolov3-aerial.weights
 .vscode
