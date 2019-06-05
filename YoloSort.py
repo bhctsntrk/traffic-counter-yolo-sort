@@ -12,10 +12,7 @@ class TkWindow(tk.Frame):
         self._filetypes = filetypes
         self.input_filepath = tk.StringVar()
         self.output_path = tk.StringVar()
-        self.yolo_path = tk.StringVar()
-
-        self.confidence = tk.IntVar()
-        self.threshold = tk.IntVar()        
+        self.yolo_path = tk.StringVar()      
 
         self._create_widgets()
         self._display_widgets()
@@ -76,7 +73,8 @@ class TkWindow(tk.Frame):
         self.yolo_path.set(fd.askdirectory(initialdir=self._initaldir))
 
     def start_counter(self):
-        yoloSortCounter = YoloSortCounter(self.input_filepath.get(), self.output_path.get(), self.yolo_path.get(), self.confidence.get(), self.threshold.get())
+        yoloSortCounter = YoloSortCounter(self.input_filepath.get(), self.output_path.get(), self.yolo_path.get(), self._confidence_slider.get(), self._threshold_slider.get())
+
     def stop_counter(self):
         sys.exit()
 

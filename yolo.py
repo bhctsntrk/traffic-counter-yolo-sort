@@ -79,6 +79,8 @@ class YoloSortCounter():
         # and determine only the *output* layer names that we need from YOLO
         print("Loading YOLO from disk...")
         self.net = cv2.dnn.readNetFromDarknet(configPath, weightsPath)
+        #self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_OPENCL)
+       	#self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
         ln = self.net.getLayerNames()
         self.layer_net = [ln[i[0] - 1] for i in self.net.getUnconnectedOutLayers()]
 
