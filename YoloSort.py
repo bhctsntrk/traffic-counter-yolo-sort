@@ -12,7 +12,7 @@ class TkWindow(tk.Frame):
         self._filetypes = filetypes
         self.input_filepath = tk.StringVar()
         self.output_path = tk.StringVar()
-        self.yolo_path = tk.StringVar()      
+        self.yolo_path = "./yolo-coco"   
 
         self._create_widgets()
         self._display_widgets()
@@ -25,10 +25,6 @@ class TkWindow(tk.Frame):
         self._output_label = tk.Label(self,text="Output Folder")
         self._output_entry = tk.Entry(self, textvariable=self.output_path)
         self._output_button = tk.Button(self, text="Browse...", command=self.output_browse)
-
-        self._yolo_label = tk.Label(self,text="Yolo Folder")
-        self._yolo_entry = tk.Entry(self, textvariable=self.yolo_path)
-        self._yolo_button = tk.Button(self, text="Browse...", command=self.yolo_browse)
 
         self._confidence_label = tk.Label(self,text="Confidence Value")
         self._confidence_slider = tk.Scale(self, from_=0.0, to=1.0, length=300, resolution=0.01, orient=tk.HORIZONTAL)
@@ -51,10 +47,6 @@ class TkWindow(tk.Frame):
         self._output_entry.pack(fill='x', expand=True)
         self._output_button.pack(anchor='se')
 
-        self._yolo_label.pack()
-        self._yolo_entry.pack(fill='x', expand=True)
-        self._yolo_button.pack(anchor='se')
-
         self._confidence_label.pack()
         self._confidence_slider.pack()
 
@@ -69,11 +61,9 @@ class TkWindow(tk.Frame):
         self.input_filepath.set(fd.askopenfilename(initialdir=self._initaldir, filetypes=self._filetypes))
     def output_browse(self):
         self.output_path.set(fd.askdirectory(initialdir=self._initaldir))
-    def yolo_browse(self):
-        self.yolo_path.set(fd.askdirectory(initialdir=self._initaldir))
 
     def start_counter(self):
-        yoloSortCounter = YoloSortCounter(self.input_filepath.get(), self.output_path.get(), self.yolo_path.get(), self._confidence_slider.get(), self._threshold_slider.get())
+        yoloSortCounter = YoloSortCounter(self.input_filepath.get(), self.output_path.get(), self.yolo_path, self._confidence_slider.get(), self._threshold_slider.get())
 
     def stop_counter(self):
         sys.exit()
