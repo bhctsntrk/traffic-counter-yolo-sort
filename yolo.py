@@ -27,7 +27,9 @@ class YoloSortCounter():
 
         # Main variables
         self.memory = {}
-        self.car_counters = []
+        self.car_counters = []  # One counter for every one line
+        self.frame = None  # Current Frame
+        self.lines = None  # Lines list
 
         self.car_IDs_with_line_ids = {}
 
@@ -84,6 +86,16 @@ class YoloSortCounter():
         ln = self.net.getLayerNames()
         self.layer_net = [ln[i[0] - 1] for i in self.net.getUnconnectedOutLayers()]
 
+    def line_draw_callback(self):
+        line_drawer_object = LineDrawer(self.frame)
+        self.lines = line_drawer_object.drawer()
+
+        self.car_counters = []
+        # Create counters for every green line
+        for i in range(len(self.lines)):
+            if i%2 == 0:
+                self.car_counters.append(0)
+
     def proccess(self):
         # initialize the video stream, pointer to output video file, and
         # frame dimensions
@@ -107,33 +119,28 @@ class YoloSortCounter():
             print("No approximate completion time can be provided")
             total = -1
 
-        _, first_frame = self.vs.read()
-        line_drawer_object = LineDrawer(first_frame)
-        lines = line_drawer_object.drawer()
-
-        # Create counters for every green line
-        for i in range(len(lines)):
-            if i%2 == 0:
-                self.car_counters.append(0)
-
         # loop over frames from the video file stream
         while True:
             # read the next frame from the file
-            (grabbed, frame) = self.vs.read()
+            (grabbed, self.frame) = self.vs.read()
 
             # if the frame was not grabbed, then we have reached the end
             # of the stream
             if not grabbed:
                 break
 
+            # If lines not draw yet we call linedrawer
+            if self.lines is None:
+                self.line_draw_callback()
+
             # if the frame dimensions are empty, grab them
             if W is None or H is None:
-                (H, W) = frame.shape[:2]
+                (H, W) = self.frame.shape[:2]
 
             # construct a blob from the input frame and then perform a forward
             # pass of the YOLO object detector, giving us our bounding boxes
             # and associated probabilities
-            blob = cv2.dnn.blobFromImage(frame, 1 / 255.0, (416, 416),
+            blob = cv2.dnn.blobFromImage(self.frame, 1 / 255.0, (416, 416),
                 swapRB=True, crop=False)
             self.net.setInput(blob)
             start = time.time()
@@ -223,7 +230,7 @@ class YoloSortCounter():
                     # cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
 
                     color = [int(c) for c in self.COLORS[indexIDs[i] % len(self.COLORS)]]
-                    cv2.rectangle(frame, (x, y), (w, h), color, 2)
+                    cv2.rectangle(self.frame, (x, y), (w, h), color, 2)
 
                     if indexIDs[i] in previous:
                         previous_box = previous[indexIDs[i]]
@@ -231,9 +238,9 @@ class YoloSortCounter():
                         (w2, h2) = (int(previous_box[2]), int(previous_box[3]))
                         p0 = (int(x + (w-x)/2), int(y + (h-y)/2))
                         p1 = (int(x2 + (w2-x2)/2), int(y2 + (h2-y2)/2))
-                        cv2.line(frame, p0, p1, color, 3)
+                        cv2.line(self.frame, p0, p1, color, 3)
 
-                        for indx, l in enumerate(lines):
+                        for indx, l in enumerate(self.lines):
                             if self.intersect(p0, p1, l[0], l[1]):
                                 if indx % 2 == 0: # If pass on green
                                     self.car_IDs_with_line_ids[indexIDs[i]] = indx
@@ -242,35 +249,39 @@ class YoloSortCounter():
 
                     # text = "{}: {:.4f}".format(LABELS[classIDs[i]], confidences[i])
                     text = "{}".format(indexIDs[i])
-                    cv2.putText(frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                    cv2.putText(self.frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
                     i += 1
 
             # draw lines
-            for indx, l in enumerate(lines):
+            for indx, l in enumerate(self.lines):
                 if indx % 2 == 0:
-                    cv2.line(frame, l[0], l[1], (0,255,0), 5)
+                    cv2.line(self.frame, l[0], l[1], (0,255,0), 5)
                 else:
-                    cv2.line(frame, l[0], l[1], (0,0,255), 5)
+                    cv2.line(self.frame, l[0], l[1], (0,0,255), 5)
             
             # draw counters
             for i, c in enumerate(self.car_counters):
-                (x, y) = lines[i*2][0]
+                (x, y) = self.lines[i*2][0]
                 text = "Line "+ str(i)+": " + str(c)
-                cv2.putText(frame, text, (x - 10, y - 10), cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 255, 255), 1)
+                cv2.putText(self.frame, text, (x - 10, y - 10), cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 255, 255), 1)
 
             # Save images to ouput folder
             #cv2.imwrite("output/frame-{}.png".format(frameIndex), frame)
             # Show images
-            cv2.imshow("Main Screen Press q to exit!", frame)
-            if cv2.waitKey(25) & 0xFF == ord('q'):
+            cv2.imshow("Press q to exit! Press l to draw line!", self.frame)
+            # Quit from system
+            if cv2.waitKey(25) == ord('q'):
                 self.exit_and_clean()
+            # Call line drawer    
+            elif cv2.waitKey(25) == ord('l'):
+                self.line_draw_callback()
 
             # check if the video writer is None
             if self.writer is None:
                 # initialize our video writer
                 fourcc = cv2.VideoWriter_fourcc(*"MJPG")
                 self.writer = cv2.VideoWriter(self.output_path + '/aOUT.avi', fourcc, 30,
-                    (frame.shape[1], frame.shape[0]), True)
+                    (self.frame.shape[1], self.frame.shape[0]), True)
 
                 # some information on processing single frame
                 if total > 0:
@@ -280,7 +291,7 @@ class YoloSortCounter():
                         elap * total))
 
             # write the output frame to disk
-            self.writer.write(frame)
+            self.writer.write(self.frame)
 
             # increase frame index
             frameIndex += 1
