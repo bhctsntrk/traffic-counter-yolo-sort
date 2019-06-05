@@ -11,12 +11,11 @@ class LineDrawer():
 
     def on_mouse(self, event, x, y, flags, params):
         if event == cv2.EVENT_LBUTTONDOWN:
-            if self.drawing is False:
-                self.drawing = True
-                self.p1 = (x,y)
-            else:
-                self.drawing = False
-                self.lines.append([self.p1, self.p2])
+            self.p1 = (x,y)
+
+        elif event == cv2.EVENT_LBUTTONUP:
+            self.p2 = (x,y)
+            self.lines.append([self.p1, self.p2])
 
 
         elif event == cv2.EVENT_MOUSEMOVE:
