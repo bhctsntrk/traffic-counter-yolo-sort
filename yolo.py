@@ -63,7 +63,7 @@ class YoloSortCounter():
 
     def load_yolo(self):
         # load the COCO class labels our YOLO model was trained on
-        labelsPath = os.path.sep.join([self.yolo_path, "coco.names"])
+        labelsPath = os.path.sep.join([self.yolo_path, "aerial.names"])
         LABELS = open(labelsPath).read().strip().split("\n")
 
         # initialize a list of self.COLORS to represent each possible class label
@@ -72,8 +72,8 @@ class YoloSortCounter():
             dtype="uint8")
 
         # derive the paths to the YOLO weights and model configuration
-        weightsPath = os.path.sep.join([self.yolo_path, "yolov3.weights"])
-        configPath = os.path.sep.join([self.yolo_path, "yolov3.cfg"])
+        weightsPath = os.path.sep.join([self.yolo_path, "yolov3-aerial.weights"])
+        configPath = os.path.sep.join([self.yolo_path, "yolov3-aerial.cfg"])
 
         # load our YOLO object detector trained on COCO dataset (80 classes)
         # and determine only the *output* layer names that we need from YOLO
