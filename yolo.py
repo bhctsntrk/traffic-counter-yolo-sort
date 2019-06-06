@@ -5,6 +5,8 @@ import numpy as np
 import imutils
 import cv2
 import glob
+from time import sleep
+from itertools import permutations 
 from lineDrawer import LineDrawer
 from sort import *
 
@@ -27,9 +29,12 @@ class YoloSortCounter():
 
         # Main variables
         self.memory = {}
-        self.car_counters = []  # One counter for every one line
+          # This list stores counter based on one line to another (all permutations with counters)
+          # There is three param [counter, [from_line, to_line]]
+        self.car_counters = []
         self.frame = None  # Current Frame
         self.lines = None  # Lines list
+        self.black_border_height = 150  # Image black area height for outputs
 
         self.car_IDs_with_line_ids = {}
 
@@ -55,6 +60,10 @@ class YoloSortCounter():
         self.writer.release()
         self.vs.release()
         cv2.destroyAllWindows()
+
+    def brighten_the_line(self, line_id):
+        # If a car passes a line this funct will brighter the line
+        cv2.line(self.frame, self.lines[line_id][0], self.lines[line_id][1], (222,255,222), 11)
 
     # Return true if line segments AB and CD intersect
     def intersect(self,A,B,C,D):
@@ -87,14 +96,24 @@ class YoloSortCounter():
         self.layer_net = [ln[i[0] - 1] for i in self.net.getUnconnectedOutLayers()]
 
     def line_draw_callback(self):
-        line_drawer_object = LineDrawer(self.frame)
+        line_drawer_object = LineDrawer(self.frame, self.black_border_height)
         self.lines = line_drawer_object.drawer()
 
-        self.car_counters = []
-        # Create counters for every green line
-        for i in range(len(self.lines)):
-            if i%2 == 0:
-                self.car_counters.append(0)
+        self.car_counters = []  # Delete old params
+
+        # Remember three param of car_counter [counter, [from_line, to_line]]
+        # Fill car_counter with initial params. Param lenght equal to all 2 lenght permutations of len(lines)
+        for i in permutations(list(range(len(self.lines))), 2):
+            self.car_counters.append([0, list(i)])
+        
+    def show_output(self):
+        # Print and show the image and counters situation to screen
+        
+        self.frame = cv2.copyMakeBorder(self.frame,self.black_border_height,1,1,1,cv2.BORDER_CONSTANT,value=[0,0,0])
+        for indx,i in enumerate(self.car_counters):
+            text = "From line"+str(i[1][0])+" -----> line"+str(i[1][1])+" #"+str(i[0])+" car passed."
+            cv2.putText(self.frame, text, (0, 15*(indx+1)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, [0,255,255], 1)
+        cv2.imshow("Press q to exit! Press l to redraw lines!", self.frame)
 
     def proccess(self):
         # initialize the video stream, pointer to output video file, and
@@ -131,6 +150,9 @@ class YoloSortCounter():
 
             # If lines not draw yet we call linedrawer
             if self.lines is None:
+                self.line_draw_callback()
+            elif len(self.lines) == 1:
+                print("Please draw at least two lines")
                 self.line_draw_callback()
 
             # if the frame dimensions are empty, grab them
@@ -213,7 +235,7 @@ class YoloSortCounter():
                 self.memory[indexIDs[-1]] = boxes[-1]
 
             # Check founded objects in this frame and add to self.memory if newly appeared
-            # -1 is line number and it will cahnge when a green line passed
+            # -1 is line number and it will bethe first line id that passed
             for car_id in indexIDs:
                 if car_id not in self.car_IDs_with_line_ids:
                     self.car_IDs_with_line_ids[car_id] = -1
@@ -242,10 +264,17 @@ class YoloSortCounter():
 
                         for indx, l in enumerate(self.lines):
                             if self.intersect(p0, p1, l[0], l[1]):
-                                if indx % 2 == 0: # If pass on green
+                                self.brighten_the_line(indx)  # Bright the line
+
+                                if self.car_IDs_with_line_ids[indexIDs[i]] == -1:   # If the first pass on some line
                                     self.car_IDs_with_line_ids[indexIDs[i]] = indx
-                                elif indx-1 == self.car_IDs_with_line_ids[indexIDs[i]]: # If pass on red
-                                    self.car_counters[(indx-1)//2] += 1
+                                else:                                               # If there is line that the car passed in past
+                                    for n, car_counter_item in enumerate(self.car_counters):
+                                        # [car_IDs_with_line_ids[indexIDs[i]] is the first line id
+                                        # indx current (second line id)
+                                        # We search our car_counters list and try found the permutation that increase 1 the counter
+                                        if car_counter_item[1] == [self.car_IDs_with_line_ids[indexIDs[i]], indx]:
+                                            car_counter_item[0] += 1
 
                     # text = "{}: {:.4f}".format(LABELS[classIDs[i]], confidences[i])
                     text = "{}".format(indexIDs[i])
@@ -254,21 +283,19 @@ class YoloSortCounter():
 
             # draw lines
             for indx, l in enumerate(self.lines):
-                if indx % 2 == 0:
-                    cv2.line(self.frame, l[0], l[1], (0,255,0), 5)
-                else:
-                    cv2.line(self.frame, l[0], l[1], (0,0,255), 5)
-            
-            # draw counters
-            for i, c in enumerate(self.car_counters):
-                (x, y) = self.lines[i*2][0]
-                text = "Line "+ str(i)+": " + str(c)
-                cv2.putText(self.frame, text, (x - 10, y - 10), cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 255, 255), 1)
+                cv2.line(self.frame, l[0], l[1], (0,255,0), 5)
+
+                # Line text to show line's id in image
+                text = "Line"+ str(indx)
+                cv2.putText(self.frame, text, (l[0][0] - 10, l[0][1] - 10), cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 255, 255), 1)
 
             # Save images to ouput folder
             #cv2.imwrite("output/frame-{}.png".format(frameIndex), frame)
+
             # Show images
-            cv2.imshow("Press q to exit! Press l to draw line!", self.frame)
+            # cv2.imshow("Press q to exit! Press l to redraw lines!", self.frame)
+            self.show_output()
+
             # Quit from system
             if cv2.waitKey(25) == ord('q'):
                 self.exit_and_clean()
