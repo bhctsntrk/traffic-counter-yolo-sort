@@ -1,3 +1,8 @@
+## TO - DO
+ * Rebuild for Windows
+ * Add more comment lines and add some docstrings
+ * We need better data tables
+
 ## Downloading and Installing
 
 #### Windows
