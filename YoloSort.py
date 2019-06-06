@@ -28,7 +28,7 @@ class TkWindow(tk.Frame):
 
         self._confidence_label = tk.Label(self,text="Confidence Value")
         self._confidence_slider = tk.Scale(self, from_=0.0, to=1.0, length=300, resolution=0.01, orient=tk.HORIZONTAL)
-        self._confidence_slider.set(0.5)
+        self._confidence_slider.set(0.7)
 
         self._threshold_label = tk.Label(self,text="Threshold Value")
         self._threshold_slider = tk.Scale(self, from_=0.0, to=1.0, length=300, resolution=0.01, orient=tk.HORIZONTAL)
