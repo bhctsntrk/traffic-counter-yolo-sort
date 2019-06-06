@@ -8,3 +8,5 @@ numba
 imutils
 opencv-contrib-python
 Pillow
+matplotlib
+itertools
